@@ -3,56 +3,38 @@ A Helper Library for Optuna Async Optimization
 
 # Install
 
-Please first install PDM >= 2.0 with pip/pipx.
-
 ```bash
-pdm install --prod
+pip install optuna-async-helper
 ```
 
-# Develop
+# Usage
 
-```bash
-pdm install
+```python
+from optuna_async_helper import SearchSpace, SearchSpec, optimize
+
+
+def rosenbrock(x: float, y: float) -> float:
+    return (1 - x) ** 2 + 100 * (y - x**2) ** 2
+
+
+search_space: SearchSpace = [
+    SearchSpec(var_name="x", var_type="float", low=-5, high=5),
+    SearchSpec(var_name="y", var_type="float", low=-5, high=5),
+]
+
+with tempfile.TemporaryDirectory() as tempdir:
+    study = optimize(
+        study_name="rosenbrock",
+        storage=f"sqlite:///example.db",
+        objective_func=rosenbrock,
+        search_space=search_space,
+        n_trials=50,
+        batch_size=4,
+    )
+
+    assert study.best_value < 1.0
+    assert abs(study.best_params["x"] - 1) < 1.0
+    assert abs(study.best_params["y"] - 1) < 1.0
 ```
 
-This installs the following tools in addition to `pdm install --prod`.
-
-- ruff
-- pyright
-- black
-- pytest-cov
-
-The settings of those linter and formatters are written in `pyproject.toml`
-
-# VSCode Settings
-
-```bash
-cp vscode_templates .vscode
-```
-
-Then install/activate all extensions listed in `.vscode/extensions.json`
-
-# Creating Console Script
-
-```toml
-[project.scripts]
-app = "app.cli:main"
-```
-
-# Define Project Command
-
-```toml
-[tool.pdm.scripts]
-black = "black ."
-pyright = "pyright ."
-ruff_lint = "ruff ."
-ruff_fix = "ruff --fix-only ."
-test = "pytest tests --cov=app --cov-report=term --cov-report=xml"
-format = { composite = ["black", "ruff_fix"] }
-lint = { composite = ["ruff_lint", "pyright"] }
-check = { composite = ["format", "lint", "test"] }
-```
-
-# Build Docker Image
-
-Please check the `Dockerfile` for how to use multi-stage build with PDM.
+For more detail, please check `optimize` and `SearchSpec` definitions.
