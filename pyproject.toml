@@ -5,7 +5,7 @@ authors = [{ name = "杜 世橋 Du Shiqiao", email = "lucidfrontier.45@gmail.com
 license = { text = "MIT" }
 dynamic = ["version"]
 requires-python = ">=3.11"
-dependencies = ["optuna>=3.5.0", "joblib>=1.3.2"]
+dependencies = ["optuna>=3.5.0", "joblib>=1.3.2", "pydantic>=2.6.1"]
 
 
 [build-system]
@@ -14,7 +14,7 @@ build-backend = "pdm.backend"
 
 [tool.pdm.version]
 source = "file"
-path = "src/optuna_async_helper/version.py"
+path = "src/optuna_async_helper/__init__.py"
 
 [tool.pdm.dev-dependencies]
 dev = ["black>=24.2.0", "ruff>=0.2.1", "pyright>=1.1.350"]
@@ -38,12 +38,14 @@ target-version = ["py311"]
 extend-exclude = "deps"
 
 [tool.ruff]
-select = ["E", "F", "W"]
 target-version = "py311"
 # add directory names to exclude from analysis
 exclude = ["deps"]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+
+[tool.ruff.lint.per-file-ignores]
 "*/__init__.py" = ['F401']
 
 [tool.pyright]
