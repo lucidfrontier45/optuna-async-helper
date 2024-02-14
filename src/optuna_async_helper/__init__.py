@@ -6,7 +6,7 @@ from optuna import Study, Trial, create_study
 from optuna.samplers import BaseSampler, TPESampler
 from pydantic import BaseModel, Field
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 VariableType: TypeAlias = Literal["int", "float", "categorical", "logint", "logfloat"]
 
