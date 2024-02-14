@@ -1,5 +1,5 @@
-# Python PDM Template
-A Project Template of Python with PDM
+# Optuna Async Helper
+A Helper Library for Optuna Async Optimization
 
 # Install
 

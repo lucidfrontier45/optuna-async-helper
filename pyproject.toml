@@ -1,17 +1,12 @@
 [project]
-name = "python-pdm-template"
-description = "A Project Template of Python with PDM"
+name = "optuna-async-helper"
+description = "A Helper Library for Optuna Async Optimization"
 authors = [{ name = "杜 世橋 Du Shiqiao", email = "lucidfrontier.45@gmail.com" }]
 license = { text = "MIT" }
 dynamic = ["version"]
 requires-python = ">=3.11"
-dependencies = ["fastapi>=0.100.1", "uvicorn>=0.23.1"]
+dependencies = ["optuna>=3.5.0", "joblib>=1.3.2"]
 
-[project.optional-dependencies]
-server = ["uvicorn[standard]>=0.23.1"]
-
-[project.scripts]
-app = "app.cli:main"
 
 [build-system]
 requires = ["pdm-backend"]
@@ -19,22 +14,17 @@ build-backend = "pdm.backend"
 
 [tool.pdm.version]
 source = "file"
-path = "src/app/version.py"
+path = "src/optuna_async_helper/version.py"
 
 [tool.pdm.dev-dependencies]
-dev = [
-    "black>=23.9.1",
-    "ruff>=0.0.291",
-    "pyright>=1.1.329",
-    "pytest-cov>=4.1.0",
-]
+dev = ["black>=24.2.0", "ruff>=0.2.1", "pyright>=1.1.350"]
 
 [tool.pdm.scripts]
 black = "black ."
 pyright = "pyright ."
 ruff_lint = "ruff ."
 ruff_fix = "ruff --fix-only ."
-test = "pytest tests --cov=app --cov-report=term --cov-report=xml"
+test = "pytest tests --cov=optuna_async_helper --cov-report=term --cov-report=xml"
 format = { composite = ["ruff_fix", "black"] }
 lint = { composite = ["ruff_lint", "pyright"] }
 check = { composite = ["format", "lint", "test"] }
