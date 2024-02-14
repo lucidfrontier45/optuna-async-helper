@@ -1,7 +1,8 @@
 from collections.abc import Callable
 from typing import Literal, ParamSpec, TypeAlias
 
-from optuna import Trial, create_study
+import joblib
+from optuna import Study, Trial, create_study
 from optuna.samplers import BaseSampler, TPESampler
 from pydantic import BaseModel, Field
 
@@ -39,6 +40,19 @@ SearchSpace: TypeAlias = list[SearchSpec]
 P = ParamSpec("P")
 
 
+def _worker_func(
+    study: Study,
+    objective_func: Callable[P, float],
+    search_space: SearchSpace,
+    n_trials: int,
+) -> None:
+    for _ in range(n_trials):
+        trial = study.ask()
+        params = {spec.var_name: spec.suggest(trial) for spec in search_space}
+        value = objective_func(**params)  # type: ignore
+        study.tell(trial, value)
+
+
 def optimize(
     study_name: str,
     storage: str,
@@ -47,6 +61,7 @@ def optimize(
     sampler: BaseSampler | None = None,
     direction: Literal["minimize", "maximize"] = "minimize",
     n_trials: int = 20,
+    batch_size: int = 8,
 ):
     if sampler is None:
         sampler = TPESampler(constant_liar=True)
@@ -58,10 +73,9 @@ def optimize(
         direction=direction,
     )
 
-    for _ in range(n_trials):
-        trial = study.ask()
-        params = {spec.var_name: spec.suggest(trial) for spec in search_space}
-        value = objective_func(**params)  # type: ignore
-        study.tell(trial, value)
+    joblib.Parallel(n_jobs=-1)(
+        joblib.delayed(_worker_func)(study, objective_func, search_space, n_trials)
+        for _ in range(batch_size)
+    )
 
     return study

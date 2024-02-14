@@ -17,7 +17,7 @@ source = "file"
 path = "src/optuna_async_helper/__init__.py"
 
 [tool.pdm.dev-dependencies]
-dev = ["black>=24.2.0", "ruff>=0.2.1", "pyright>=1.1.350"]
+dev = ["black>=24.2.0", "ruff>=0.2.1", "pyright>=1.1.350", "pytest>=8.0.0"]
 
 [tool.pdm.scripts]
 black = "black ."
@@ -30,7 +30,10 @@ lint = { composite = ["ruff_lint", "pyright"] }
 check = { composite = ["format", "lint", "test"] }
 
 [tool.pytest.ini_options]
-filterwarnings = ["ignore::FutureWarning"]
+filterwarnings = [
+    "ignore::FutureWarning",
+    "ignore::optuna.exceptions.ExperimentalWarning",
+]
 
 [tool.black]
 target-version = ["py311"]
