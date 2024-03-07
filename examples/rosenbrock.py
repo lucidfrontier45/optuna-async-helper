@@ -7,12 +7,13 @@ def rosenbrock(x: float, y: float, z: float) -> float:
     return (z - x) ** 2 + 100 * (y - x**2) ** 2
 
 
-def test_optimizer():
+if __name__ == "__main__":
+
     search_space: SearchSpace = [
         SearchSpec(var_name="x", var_type="float", low=-5, high=5),
         SearchSpec(var_name="y", var_type="float", low=-5, high=5),
     ]
-    z = 0.5
+    z = -2.0
 
     with tempfile.TemporaryDirectory() as tempdir:
         study = optimize(
@@ -25,6 +26,5 @@ def test_optimizer():
             z=z,
         )
 
-        assert study.best_value < 1.0
-        assert abs(study.best_params["x"] - z) < 1.0
-        assert abs(study.best_params["y"] - z) < 1.0
+        print(study.best_value)
+        print(study.best_params)

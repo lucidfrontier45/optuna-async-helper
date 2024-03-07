@@ -1,8 +1,10 @@
+import multiprocessing
 from collections.abc import Callable
 from typing import Literal, ParamSpec, TypeAlias
 
 import joblib
 from optuna import Study, Trial, create_study
+from optuna.pruners import BasePruner
 from optuna.samplers import BaseSampler, TPESampler
 from pydantic import BaseModel, Field
 
@@ -45,11 +47,12 @@ def _worker_func(
     objective_func: Callable[P, float],
     search_space: SearchSpace,
     n_trials: int,
+    **fn_kwargs,
 ) -> None:
     for _ in range(n_trials):
         trial = study.ask()
         params = {spec.var_name: spec.suggest(trial) for spec in search_space}
-        value = objective_func(**params)  # type: ignore
+        value = objective_func(**params, **fn_kwargs)  # type: ignore
         study.tell(trial, value)
 
 
@@ -62,6 +65,10 @@ def optimize(
     direction: Literal["minimize", "maximize"] = "minimize",
     n_trials: int = 20,
     batch_size: int = 8,
+    n_jobs: int = -1,
+    load_if_exists: bool = True,
+    pruner: BasePruner | None = None,
+    **fn_kwargs,
 ):
     if sampler is None:
         sampler = TPESampler(constant_liar=True)
@@ -71,10 +78,14 @@ def optimize(
         storage=storage,
         sampler=sampler,
         direction=direction,
+        load_if_exists=load_if_exists,
+        pruner=pruner,
     )
 
-    joblib.Parallel(n_jobs=-1)(
-        joblib.delayed(_worker_func)(study, objective_func, search_space, n_trials)
+    joblib.Parallel(n_jobs=n_jobs)(
+        joblib.delayed(_worker_func)(
+            study, objective_func, search_space, n_trials, **fn_kwargs
+        )
         for _ in range(batch_size)
     )
 
