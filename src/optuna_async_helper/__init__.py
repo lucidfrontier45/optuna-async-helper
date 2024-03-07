@@ -8,7 +8,7 @@ from optuna.pruners import BasePruner
 from optuna.samplers import BaseSampler, TPESampler
 from pydantic import BaseModel, Field
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 VariableType: TypeAlias = Literal["int", "float", "categorical", "logint", "logfloat"]
 
