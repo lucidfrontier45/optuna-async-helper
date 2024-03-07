@@ -41,7 +41,7 @@ black = "black ."
 pyright = "pyright ."
 ruff_lint = "ruff ."
 ruff_fix = "ruff --fix-only ."
-test = "pytest tests --cov=optuna_async_helper --cov-report=term --cov-report=xml"
+test = "pytest tests"
 format = { composite = ["ruff_fix", "black"] }
 lint = { composite = ["ruff_lint", "pyright"] }
 check = { composite = ["format", "lint", "test"] }
