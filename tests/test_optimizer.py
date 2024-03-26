@@ -9,8 +9,8 @@ def rosenbrock(x: float, y: float, z: float) -> float:
 
 def test_optimizer():
     search_space: SearchSpace = [
-        SearchSpec(var_name="x", var_type="float", low=-5, high=5),
-        SearchSpec(var_name="y", var_type="float", low=-5, high=5),
+        SearchSpec(var_name="x", domain_type="float", low=-5, high=5),
+        SearchSpec(var_name="y", domain_type="float", low=-5, high=5),
     ]
     z = 0.5
 
