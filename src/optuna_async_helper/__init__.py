@@ -1,4 +1,3 @@
-import multiprocessing
 from collections.abc import Callable
 from typing import Literal, ParamSpec, TypeAlias
 
@@ -8,20 +7,22 @@ from optuna.pruners import BasePruner
 from optuna.samplers import BaseSampler, TPESampler
 from pydantic import BaseModel, Field
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
-VariableType: TypeAlias = Literal["int", "float", "categorical", "logint", "logfloat"]
+DomainType: TypeAlias = Literal["int", "float", "categorical", "logint", "logfloat"]
+Numeric: TypeAlias = int | float
+Scalar: TypeAlias = int | float | str | bool
 
 
 class SearchSpec(BaseModel):
     var_name: str
-    var_type: VariableType
-    low: int | float = 0
-    high: int | float = 0
+    domain_type: DomainType
+    low: Numeric = 0
+    high: Numeric = 0
     choices: list[int | float | str | bool] = Field(default_factory=list)
 
     def suggest(self, trial: Trial):
-        match self.var_type:
+        match self.domain_type:
             case "int":
                 return trial.suggest_int(self.var_name, int(self.low), int(self.high))
             case "logint":
@@ -68,6 +69,7 @@ def optimize(
     n_jobs: int = -1,
     load_if_exists: bool = True,
     pruner: BasePruner | None = None,
+    initial_params: dict[str, Scalar] | None = None,
     **fn_kwargs,
 ):
     if sampler is None:
@@ -81,6 +83,9 @@ def optimize(
         load_if_exists=load_if_exists,
         pruner=pruner,
     )
+
+    if initial_params is not None:
+        study.enqueue_trial(params=initial_params, skip_if_exists=True)
 
     joblib.Parallel(n_jobs=n_jobs)(
         joblib.delayed(_worker_func)(
