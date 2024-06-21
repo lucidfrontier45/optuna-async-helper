@@ -134,3 +134,5 @@ dmypy.json
 .pdm.toml
 .pdm-python
 pdm.lock
+/requirements.lock
+/requirements-dev.lock

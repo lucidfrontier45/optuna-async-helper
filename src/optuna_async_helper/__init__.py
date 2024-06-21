@@ -1,3 +1,4 @@
+import importlib.metadata
 from collections.abc import Callable
 from typing import Literal, ParamSpec, TypeAlias
 
@@ -7,7 +8,7 @@ from optuna.pruners import BasePruner
 from optuna.samplers import BaseSampler, TPESampler
 from pydantic import BaseModel, Field
 
-__version__ = "0.3.0"
+__version__ = importlib.metadata.version("optuna-async-helper")
 
 DomainType: TypeAlias = Literal["int", "float", "categorical", "logint", "logfloat"]
 Numeric: TypeAlias = int | float
