@@ -1,6 +1,6 @@
 import importlib.metadata
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import Literal, ParamSpec, TypeAlias
 
 import joblib
@@ -76,7 +76,7 @@ def optimize(
     n_jobs: int = -1,
     load_if_exists: bool = True,
     pruner: BasePruner | None = None,
-    initial_params: dict[str, Scalar] | None = None,
+    initial_params: Mapping[str, Scalar] | None = None,
     **fn_kwargs,
 ):
     if sampler is None:
@@ -92,7 +92,7 @@ def optimize(
     )
 
     if initial_params is not None:
-        study.enqueue_trial(params=initial_params, skip_if_exists=True)
+        study.enqueue_trial(params=dict(initial_params), skip_if_exists=True)
 
     joblib.Parallel(n_jobs=n_jobs)(
         joblib.delayed(_worker_func)(
