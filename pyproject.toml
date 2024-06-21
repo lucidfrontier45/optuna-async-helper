@@ -48,7 +48,7 @@ pyright_lint = "pyright ."
 rye_format = "rye format ."
 rye_lint = "rye lint ."
 rye_fix = "rye lint --fix ."
-test = "pytest tests -n auto --cov=optuna_async_helper --cov-report=term --cov-report=xml"
+test = "pytest tests --cov=optuna_async_helper --cov-report=term --cov-report=xml"
 format = { chain = ["rye_fix", "rye_format"] }
 lint = { chain = ["rye_lint", "pyright_lint"] }
 check = { chain = ["format", "lint", "test"] }
