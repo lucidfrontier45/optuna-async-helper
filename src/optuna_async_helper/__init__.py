@@ -1,4 +1,5 @@
 import importlib.metadata
+import logging
 from collections.abc import Callable
 from typing import Literal, ParamSpec, TypeAlias
 
@@ -13,6 +14,8 @@ __version__ = importlib.metadata.version("optuna-async-helper")
 DomainType: TypeAlias = Literal["int", "float", "categorical", "logint", "logfloat"]
 Numeric: TypeAlias = int | float
 Scalar: TypeAlias = int | float | str | bool
+
+logger = logging.getLogger("optuna-async-helper")
 
 
 class SearchSpec(BaseModel):
@@ -55,7 +58,10 @@ def _worker_func(
         trial = study.ask()
         params = {spec.var_name: spec.suggest(trial) for spec in search_space}
         value = objective_func(**params, **fn_kwargs)  # type: ignore
-        study.tell(trial, value)
+        try:
+            study.tell(trial, value)
+        except Exception as e:
+            logger.warning(f"Failed to tell the trial: {e}")
 
 
 def optimize(
