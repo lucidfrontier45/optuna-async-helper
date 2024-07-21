@@ -1,5 +1,6 @@
 import importlib.metadata
 import logging
+import platform
 from collections.abc import Callable, Mapping
 from typing import Literal, ParamSpec, TypeAlias
 
@@ -7,6 +8,12 @@ import joblib
 from optuna import Study, Trial, create_study
 from optuna.pruners import BasePruner
 from optuna.samplers import BaseSampler, TPESampler
+from optuna.storages import (
+    BaseStorage,
+    JournalFileOpenLock,
+    JournalFileStorage,
+    JournalStorage,
+)
 from pydantic import BaseModel, Field
 
 __version__ = importlib.metadata.version("optuna-async-helper")
@@ -16,6 +23,15 @@ Numeric: TypeAlias = int | float
 Scalar: TypeAlias = int | float | str | bool
 
 logger = logging.getLogger("optuna-async-helper")
+
+
+def create_journal_storage(file_path: str) -> JournalStorage:
+    if platform.system() == "Windows":
+        lock_obj = JournalFileOpenLock(file_path)
+        storage = JournalFileStorage(file_path, lock_obj=lock_obj)
+    else:
+        storage = JournalFileStorage(file_path)
+    return JournalStorage(storage)
 
 
 class SearchSpec(BaseModel):
@@ -66,7 +82,7 @@ def _worker_func(
 
 def optimize(
     study_name: str,
-    storage: str,
+    storage: str | BaseStorage,
     objective_func: Callable[P, float],
     search_space: SearchSpace,
     sampler: BaseSampler | None = None,
