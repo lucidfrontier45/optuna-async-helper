@@ -136,3 +136,4 @@ dmypy.json
 pdm.lock
 /requirements.lock
 /requirements-dev.lock
+/uv.lock

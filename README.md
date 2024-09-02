@@ -38,3 +38,7 @@ with tempfile.TemporaryDirectory() as tempdir:
 ```
 
 For more detail, please check `optimize` and `SearchSpec` definitions.
+
+# Development
+
+The project is managed by [uv](https://docs.astral.sh/uv/)
