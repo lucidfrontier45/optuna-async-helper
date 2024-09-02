@@ -1,6 +1,11 @@
 import tempfile
 
-from optuna_async_helper import SearchSpace, SearchSpec, optimize
+from optuna_async_helper import (
+    SearchSpace,
+    SearchSpec,
+    optimize,
+    create_journal_storage,
+)
 
 
 def rosenbrock(x: float, y: float, z: float) -> float:
@@ -15,13 +20,14 @@ def test_optimizer():
     z = 0.5
 
     with tempfile.TemporaryDirectory() as tempdir:
+        storage = create_journal_storage(f"{tempdir}/example.db")
         study = optimize(
             study_name="rosenbrock",
-            storage=f"sqlite:///{tempdir}/example.db",
+            storage=storage,
             objective_func=rosenbrock,
             search_space=search_space,
-            n_trials=50,
-            batch_size=8,
+            n_trials=10,
+            batch_size=32,
             z=z,
         )
 
