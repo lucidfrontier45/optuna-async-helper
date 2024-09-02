@@ -1,8 +1,8 @@
 import importlib.metadata
 import logging
 import platform
-from collections.abc import Callable, Mapping
-from typing import Literal, ParamSpec, TypeAlias
+from collections.abc import Callable, Mapping, Sequence
+from typing import Generic, Literal, ParamSpec, TypeAlias, TypeVar
 
 import joblib
 from optuna import Study, Trial, create_study
@@ -22,20 +22,20 @@ logger = logging.getLogger("optuna-async-helper")
 
 
 def create_journal_storage(file_path: str) -> JournalStorage:
-    if platform.system() == "Windows":
-        lock_obj = JournalFileOpenLock(file_path)
-    else:
-        lock_obj = None
+    lock_obj = JournalFileOpenLock(file_path) if platform.system() == "win32" else None
     storage = JournalFileBackend(file_path, lock_obj=lock_obj)
     return JournalStorage(storage)
 
 
-class SearchSpec(BaseModel):
+T = TypeVar("T", int, float, str, bool)
+
+
+class SearchSpec(BaseModel, Generic[T]):
     var_name: str
     domain_type: DomainType
     low: Numeric = 0
     high: Numeric = 0
-    choices: list[int | float | str | bool] = Field(default_factory=list)
+    choices: Sequence[T] = Field(default_factory=list)
 
     def suggest(self, trial: Trial):
         match self.domain_type:
