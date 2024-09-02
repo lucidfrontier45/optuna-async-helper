@@ -8,12 +8,8 @@ import joblib
 from optuna import Study, Trial, create_study
 from optuna.pruners import BasePruner
 from optuna.samplers import BaseSampler, TPESampler
-from optuna.storages import (
-    BaseStorage,
-    JournalFileOpenLock,
-    JournalFileStorage,
-    JournalStorage,
-)
+from optuna.storages import BaseStorage, JournalStorage
+from optuna.storages.journal import JournalFileBackend, JournalFileOpenLock
 from pydantic import BaseModel, Field
 
 __version__ = importlib.metadata.version("optuna-async-helper")
@@ -28,9 +24,9 @@ logger = logging.getLogger("optuna-async-helper")
 def create_journal_storage(file_path: str) -> JournalStorage:
     if platform.system() == "Windows":
         lock_obj = JournalFileOpenLock(file_path)
-        storage = JournalFileStorage(file_path, lock_obj=lock_obj)
     else:
-        storage = JournalFileStorage(file_path)
+        lock_obj = None
+    storage = JournalFileBackend(file_path, lock_obj=lock_obj)
     return JournalStorage(storage)
 
 
