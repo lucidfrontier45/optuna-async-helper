@@ -5,7 +5,7 @@ version = "0.3.1"
 authors = [{ name = "杜 世橋 Du Shiqiao", email = "lucidfrontier.45@gmail.com" }]
 license = { text = "MIT" }
 requires-python = ">=3.11"
-dependencies = ["optuna>=3.5.0", "joblib>=1.3.2", "pydantic>=2.6.1"]
+dependencies = ["optuna>=4.0.0", "joblib>=1.3.2", "pydantic>=2.6.1"]
 readme = "README.md"
 classifiers = [
     "Intended Audience :: Science/Research",
