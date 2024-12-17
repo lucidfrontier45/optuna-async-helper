@@ -1,6 +1,7 @@
 import importlib.metadata
 import logging
 import platform
+import time
 from collections.abc import Callable, Mapping, Sequence
 from typing import Generic, Literal, ParamSpec, TypeAlias, TypeVar
 
@@ -64,10 +65,24 @@ def _worker_func(
     objective_func: Callable[P, float],
     search_space: SearchSpace,
     n_trials: int,
+    max_retry: int = 3,
+    retry_interval: float = 1.0,
     **fn_kwargs,
 ) -> None:
+    last_exception = None
     for _ in range(n_trials):
-        trial = study.ask()
+        for _ in range(max_retry):
+            try:
+                trial = study.ask()
+                break
+            except Exception as e:
+                last_exception = e
+                time.sleep(retry_interval)
+                continue
+        else:
+            if last_exception is not None:
+                raise last_exception
+
         params = {spec.var_name: spec.suggest(trial) for spec in search_space}
         value = objective_func(**params, **fn_kwargs)  # type: ignore
         try:
@@ -89,6 +104,8 @@ def optimize(
     load_if_exists: bool = True,
     pruner: BasePruner | None = None,
     initial_params: Mapping[str, Scalar] | None = None,
+    max_retry: int = 3,
+    retry_interval: float = 1.0,
     **fn_kwargs,
 ):
     if sampler is None:
@@ -108,7 +125,13 @@ def optimize(
 
     joblib.Parallel(n_jobs=n_jobs)(
         joblib.delayed(_worker_func)(
-            study, objective_func, search_space, n_trials, **fn_kwargs
+            study,
+            objective_func,
+            search_space,
+            n_trials,
+            max_retry,
+            retry_interval,
+            **fn_kwargs,
         )
         for _ in range(batch_size)
     )
