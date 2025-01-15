@@ -103,7 +103,7 @@ def optimize(
     n_jobs: int = -1,
     load_if_exists: bool = True,
     pruner: BasePruner | None = None,
-    initial_params: Mapping[str, Scalar] | None = None,
+    initial_params: Sequence[Mapping[str, Scalar]] = [],
     max_retry: int = 3,
     retry_interval: float = 1.0,
     **fn_kwargs,
@@ -120,8 +120,8 @@ def optimize(
         pruner=pruner,
     )
 
-    if initial_params is not None:
-        study.enqueue_trial(params=dict(initial_params), skip_if_exists=True)
+    for p in initial_params:
+        study.enqueue_trial(params=dict(p), skip_if_exists=True)
 
     joblib.Parallel(n_jobs=n_jobs)(
         joblib.delayed(_worker_func)(
