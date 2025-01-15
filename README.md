@@ -10,31 +10,52 @@ pip install optuna-async-helper
 # Usage
 
 ```python
-from optuna_async_helper import SearchSpace, SearchSpec, optimize
+import tempfile
+
+from optuna_async_helper import (
+    SearchSpace,
+    SearchSpec,
+    optimize,
+    create_journal_storage,
+    create_study,
+)
 
 
-def rosenbrock(x: float, y: float) -> float:
-    return (1 - x) ** 2 + 100 * (y - x**2) ** 2
+def rosenbrock(x: float, y: float, z: float) -> float:
+    return (z - x) ** 2 + 100 * (y - x**2) ** 2
 
 
-search_space: SearchSpace = [
-    SearchSpec(var_name="x", var_type="float", low=-5, high=5),
-    SearchSpec(var_name="y", var_type="float", low=-5, high=5),
-]
+def test_optimizer():
+    search_space: SearchSpace = [
+        SearchSpec(var_name="x", domain_type="float", low=-5, high=5),
+        SearchSpec(var_name="y", domain_type="float", low=-5, high=5),
+    ]
+    z = 0.5
+    initial_values = [
+        {"x": 0, "y": 0},
+        {"x": 1.0, "y": 0},
+        {"x": 0, "y": 1.0},
+    ]
 
-with tempfile.TemporaryDirectory() as tempdir:
-    study = optimize(
-        study_name="rosenbrock",
-        storage=f"sqlite:///example.db",
-        objective_func=rosenbrock,
-        search_space=search_space,
-        n_trials=50,
-        batch_size=4,
-    )
+    with tempfile.TemporaryDirectory() as tempdir:
+        storage = create_journal_storage(f"{tempdir}/example.db")
+        study = create_study(
+            study_name="rosenbrock",
+            storage=storage,
+        )
+        study = optimize(
+            study,
+            objective_func=rosenbrock,
+            search_space=search_space,
+            initial_params=initial_values,
+            n_trials=10,
+            batch_size=32,
+            z=z,
+        )
 
-    assert study.best_value < 1.0
-    assert abs(study.best_params["x"] - 1) < 1.0
-    assert abs(study.best_params["y"] - 1) < 1.0
+        assert study.best_value < 1.0
+        assert abs(study.best_params["x"] - z) < 1.0
+        assert abs(study.best_params["y"] - z) < 1.0
 ```
 
 For more detail, please check `optimize` and `SearchSpec` definitions.

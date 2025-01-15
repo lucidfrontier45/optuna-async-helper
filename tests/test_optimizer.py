@@ -5,6 +5,7 @@ from optuna_async_helper import (
     SearchSpec,
     optimize,
     create_journal_storage,
+    create_study,
 )
 
 
@@ -18,14 +19,23 @@ def test_optimizer():
         SearchSpec(var_name="y", domain_type="float", low=-5, high=5),
     ]
     z = 0.5
+    initial_values = [
+        {"x": 0, "y": 0},
+        {"x": 1.0, "y": 0},
+        {"x": 0, "y": 1.0},
+    ]
 
     with tempfile.TemporaryDirectory() as tempdir:
         storage = create_journal_storage(f"{tempdir}/example.db")
-        study = optimize(
+        study = create_study(
             study_name="rosenbrock",
             storage=storage,
+        )
+        study = optimize(
+            study,
             objective_func=rosenbrock,
             search_space=search_space,
+            initial_params=initial_values,
             n_trials=10,
             batch_size=32,
             z=z,

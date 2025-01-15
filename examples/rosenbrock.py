@@ -5,6 +5,7 @@ from optuna_async_helper import (
     SearchSpace,
     SearchSpec,
     create_journal_storage,
+    create_study,
     optimize,
 )
 
@@ -23,9 +24,12 @@ if __name__ == "__main__":
     with tempfile.TemporaryDirectory() as tempdir:
         storage_path = pathlib.Path(tempdir, "example.db")
         storage = create_journal_storage(str(storage_path))
-        study = optimize(
+        study = create_study(
             study_name="rosenbrock",
             storage=storage,
+        )
+        study = optimize(
+            study,
             objective_func=rosenbrock,
             search_space=search_space,
             n_trials=50,

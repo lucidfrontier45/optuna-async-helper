@@ -3,10 +3,12 @@ import logging
 import platform
 import time
 from collections.abc import Callable, Mapping, Sequence
+from pathlib import Path
 from typing import Generic, Literal, ParamSpec, TypeAlias, TypeVar
 
 import joblib
-from optuna import Study, Trial, create_study
+from optuna import Study, Trial
+from optuna import create_study as _create_study
 from optuna.pruners import BasePruner
 from optuna.samplers import BaseSampler, TPESampler
 from optuna.storages import BaseStorage, JournalStorage
@@ -22,9 +24,34 @@ Scalar: TypeAlias = int | float | str | bool
 logger = logging.getLogger("optuna-async-helper")
 
 
-def create_journal_storage(file_path: str) -> JournalStorage:
-    lock_obj = JournalFileOpenLock(file_path) if platform.system() == "win32" else None
-    storage = JournalFileBackend(file_path, lock_obj=lock_obj)
+def create_study(
+    study_name: str,
+    storage: str | Path | BaseStorage,
+    sampler: BaseSampler | None = None,
+    pruner: BasePruner | None = None,
+    direction: Literal["minimize", "maximize"] = "minimize",
+    load_if_exists: bool = True,
+):
+    if sampler is None:
+        sampler = TPESampler(constant_liar=True)
+
+    if isinstance(storage, Path):
+        storage = create_journal_storage(storage)
+
+    return _create_study(
+        study_name=study_name,
+        storage=storage,
+        sampler=sampler,
+        pruner=pruner,
+        direction=direction,
+        load_if_exists=load_if_exists,
+    )
+
+
+def create_journal_storage(file_path: str | Path) -> JournalStorage:
+    file_path_ = str(file_path)
+    lock_obj = JournalFileOpenLock(file_path_) if platform.system() == "win32" else None
+    storage = JournalFileBackend(file_path_, lock_obj=lock_obj)
     return JournalStorage(storage)
 
 
@@ -92,34 +119,17 @@ def _worker_func(
 
 
 def optimize(
-    study_name: str,
-    storage: str | BaseStorage,
+    study: Study,
     objective_func: Callable[P, float],
     search_space: SearchSpace,
-    sampler: BaseSampler | None = None,
-    direction: Literal["minimize", "maximize"] = "minimize",
     n_trials: int = 20,
     batch_size: int = 8,
     n_jobs: int = -1,
-    load_if_exists: bool = True,
-    pruner: BasePruner | None = None,
     initial_params: Sequence[Mapping[str, Scalar]] = [],
     max_retry: int = 3,
     retry_interval: float = 1.0,
     **fn_kwargs,
 ):
-    if sampler is None:
-        sampler = TPESampler(constant_liar=True)
-
-    study = create_study(
-        study_name=study_name,
-        storage=storage,
-        sampler=sampler,
-        direction=direction,
-        load_if_exists=load_if_exists,
-        pruner=pruner,
-    )
-
     for p in initial_params:
         study.enqueue_trial(params=dict(p), skip_if_exists=True)
 
