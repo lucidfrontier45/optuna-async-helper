@@ -31,7 +31,7 @@ def test_optimizer():
         SearchSpec(var_name="y", domain_type="float", low=-5, high=5),
     ]
     z = 0.5
-    initial_values = [
+    initial_params = [
         {"x": 0, "y": 0},
         {"x": 1.0, "y": 0},
         {"x": 0, "y": 1.0},
@@ -47,7 +47,7 @@ def test_optimizer():
             study,
             objective_func=rosenbrock,
             search_space=search_space,
-            initial_params=initial_values,
+            initial_params=initial_params,
             n_trials=10,
             batch_size=32,
             z=z,
