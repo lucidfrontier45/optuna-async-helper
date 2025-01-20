@@ -32,10 +32,13 @@ if __name__ == "__main__":
             study,
             objective_func=rosenbrock,
             search_space=search_space,
-            n_trials=50,
+            n_trials=100,
             batch_size=8,
             z=z,
         )
 
-        print(study.best_value)
-        print(study.best_params)
+        for t in study.trials:
+            print(t.params, t.value)
+
+        print("Best result:")
+        print(study.best_params, study.best_value)
