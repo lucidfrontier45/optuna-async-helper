@@ -87,20 +87,26 @@ SearchSpace: TypeAlias = list[SearchSpec]
 P = ParamSpec("P")
 
 
+def _get_trial(study: Study, max_trials: int) -> Trial | None:
+    if len(study.trials) >= max_trials:
+        return None
+    return study.ask()
+
+
 def _worker_func(
     study: Study,
     objective_func: Callable[P, float],
     search_space: SearchSpace,
-    n_trials: int,
+    max_trials: int,
     max_retry: int = 3,
     retry_interval: float = 1.0,
     **fn_kwargs,
 ) -> None:
     last_exception = None
-    for _ in range(n_trials):
+    while True:
         for _ in range(max_retry):
             try:
-                trial = study.ask()
+                trial = _get_trial(study, max_trials)
                 break
             except Exception as e:
                 last_exception = e
@@ -109,6 +115,10 @@ def _worker_func(
         else:
             if last_exception is not None:
                 raise last_exception
+
+        # max_trials reached
+        if trial is None:
+            break
 
         params = {spec.var_name: spec.suggest(trial) for spec in search_space}
         value = objective_func(**params, **fn_kwargs)  # type: ignore
