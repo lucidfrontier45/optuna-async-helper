@@ -13,6 +13,7 @@ from optuna.pruners import BasePruner
 from optuna.samplers import BaseSampler, TPESampler
 from optuna.storages import BaseStorage, JournalStorage
 from optuna.storages.journal import JournalFileBackend, JournalFileOpenLock
+from optuna.trial import TrialState
 from pydantic import BaseModel, Field
 
 __version__ = importlib.metadata.version("optuna-async-helper")
@@ -88,7 +89,11 @@ P = ParamSpec("P")
 
 
 def _get_trial(study: Study, max_trials: int) -> Trial | None:
-    if len(study.trials) >= max_trials:
+    # count running and completed trials
+    it = filter(
+        lambda t: t.state in [TrialState.RUNNING, TrialState.COMPLETE], study.trials
+    )
+    if len(list(it)) >= max_trials:
         return None
     return study.ask()
 
